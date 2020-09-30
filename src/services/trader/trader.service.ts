@@ -1,16 +1,117 @@
 import { Injectable } from '@nestjs/common';
+import { FILL_ORDER_ABI } from 'src/config/ABIs/fill-order';
+import { ADDRESS, GAS_LIMIT, GAS_PRICE } from 'src/config/config';
+import { playSound, toBN, toHex, toTokens } from 'src/utils/utils';
+import { Web3Service } from '../web3/web3.service';
 
 @Injectable()
 export class TraderService {
-    public async buy(token: any, exchange: any, amount: number): Promise<void> {
-        return;
+
+    constructor(private web3Service: Web3Service) { }
+
+    public async trade(
+        flashTokenSymbol: string,
+        flashTokenAddress: string,
+        arbTokenAddress: string,
+        orderJson: any,
+        fillAmount: number,
+        oneSplitData: any
+        ) {
+          // let ESTIMATE;
+        let receipt;
+        try {
+          const FLASH_AMOUNT = toTokens('100', flashTokenSymbol); // 100 WETH
+          const FROM_TOKEN = flashTokenAddress // WETH
+          const FROM_AMOUNT = fillAmount // '1000000'
+          const TO_TOKEN = arbTokenAddress
+      
+          const ONE_SPLIT_SLIPPAGE = '0.995';
+      
+          const orderTuple = [
+            orderJson.makerAddress,
+            orderJson.takerAddress,
+            orderJson.feeRecipientAddress,
+            orderJson.senderAddress,
+            orderJson.makerAssetAmount,
+            toBN(orderJson.takerAssetAmount),
+            orderJson.makerFee,
+            orderJson.takerFee,
+            orderJson.expirationTimeSeconds,
+            orderJson.salt,
+            orderJson.makerAssetData,
+            orderJson.takerAssetData,
+            orderJson.makerFeeAssetData,
+            orderJson.takerFeeAssetData
+          ];
+      
+          // Format ZRX function call data
+          const takerAssetFillAmount = FROM_AMOUNT;
+          const signature = orderJson.signature;
+          const data = this.web3Service.web3.eth.abi.encodeFunctionCall(FILL_ORDER_ABI, [orderTuple, takerAssetFillAmount, signature]);
+        
+          const minReturn = oneSplitData.returnAmount;
+          const distribution = oneSplitData.distribution;
+      
+          // Calculate slippage
+          const minReturnWtihSplippage = (toBN(minReturn)).mul(toBN('995')).div(toBN('1000')).toString();
+
+        
+          // console.log(
+          //     flashTokenAddress, // address flashToken,
+          //     ' // ',
+          //     FLASH_AMOUNT, // uint256 flashAmount,
+          //     ' // ',
+          //     arbTokenAddress, // address arbToken,
+          //     ' // ',
+          //     data, // bytes calldata zrxData,
+          //     ' // ',
+          //     minReturnWtihSplippage.toString(), // uint256 oneSplitMinReturn,
+          //     ' // ',
+          //     distribution, // uint256[] calldata oneSplitDistribution
+          // );
+          // let ESTIMATE;
+          // try {
+            // console.log('------------------------- BEFORE ESTIMATE -------------------------');
+            // console.log('------------------------------------------------------------');
+            // // Perform Trade
+            // ESTIMATE = await this.web3Service.traderContract.methods.getFlashloan(
+            //   flashTokenAddress, // address flashToken,
+            //   FLASH_AMOUNT, // uint256 flashAmount,
+            //   arbTokenAddress, // address arbToken,
+            //   data, // bytes calldata zrxData,
+            //   minReturnWtihSplippage, // uint256 oneSplitMinReturn,
+            //   distribution, // uint256[] calldata oneSplitDistribution
+            // ).estimateGas({from: ADDRESS});
+
+            // console.log('------------------------- ESTIMATE -------------------------');
+            // console.log(ESTIMATE);
+            // console.log('------------------------------------------------------------');
+            
+            
+          // Perform Trade
+          receipt = await this.web3Service.traderContract.methods.getFlashloan(
+            flashTokenAddress, // address flashToken,
+            FLASH_AMOUNT, // uint256 flashAmount,
+            arbTokenAddress, // address arbToken,
+            data, // bytes calldata zrxData,
+            minReturnWtihSplippage.toString(), // uint256 oneSplitMinReturn,
+            distribution, // uint256[] calldata oneSplitDistribution
+          ).send({
+            from: ADDRESS,
+            gas: +GAS_LIMIT,
+            // gasPrice: GAS_PRICE
+          });
+          playSound();
+          playSound();
+          playSound();
+          playSound();
+          playSound();
+          console.log(receipt);
+        } catch(err) {
+          playSound();
+          playSound();
+          console.error('ERROR TRADER SERVICE => ', err);
+        }
     }
 
-    public async sell(token: any, exchange: any, amount: number): Promise<void> {
-        return;
-    }
-
-    public async cashOut(amount: number): Promise<void> {
-        return;
-    }
 }

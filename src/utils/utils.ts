@@ -27,6 +27,10 @@ export const toTokens = (tokenAmount: string, symbol: string) => {
   }
 }
 
+export const toWei = (amount: number | string, fromUnit: 'ether' | 'gwei') => {
+  return web3.utils.toWei(amount, fromUnit);
+}
+
 export const displayTokens = (amount: string, symbol: string): string  => {
   let tokens: string;
   tokens = tokensWithDecimalPlaces(amount, symbol);

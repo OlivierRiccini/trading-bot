@@ -1,6 +1,5 @@
 import { Injectable } from '@nestjs/common';
 import { PRIVATE_KEY, RPC_URL } from 'src/config/config';
-// import Web3 from 'web3';
 const Web3 = require("web3");
 import { ONE_SPLIT_ADDRESS, TRADER_ADDRESS, ZRX_EXCHANGE_ADDRESS } from 'src/config/adresses/adresses';
 import { ONE_SPLIT_ABI } from 'src/config/ABIs/one-split';

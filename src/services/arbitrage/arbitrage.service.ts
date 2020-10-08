@@ -42,7 +42,6 @@ export class ArbitrageService {
         const baseAssetAddress = ASSET_ADDRESSES[baseAssetSymbol].substring(2,42);
         const quoteAssetAddress = ASSET_ADDRESSES[quoteAssetSymbol].substring(2,42);
         const apiUrl = `https://api.0x.org/sra/v3/orderbook?baseAssetData=0xf47261b0000000000000000000000000${baseAssetAddress}&quoteAssetData=0xf47261b0000000000000000000000000${quoteAssetAddress}&perPage=1000`;
-        // console.log(apiUrl);
         const zrxResponse = await axios.get(apiUrl);
         const zrxData = zrxResponse.data;
         const bids = zrxData.bids.records;
@@ -124,19 +123,10 @@ export class ArbitrageService {
         // Calculate net profit
         let netProfit = outputAssetAmount - inputAssetAmount - estimatedGasFee;
         netProfit = Math.floor(netProfit); // Round down
-        // console.log('****************************************************************************');
-        // console.log('estimatedGasFee => ', estimatedGasFee);
-        // console.log('inputAssetAmount => ', inputAssetAmount);
-        // console.log('outputAssetAmount => ', outputAssetAmount);
-        // console.log('Profit before fee => ', outputAssetAmount - inputAssetAmount);
-        // console.log('Profit after fee => ', netProfit);
-        // console.log('Profit after fee TO ETHER => ', +this.web3Serivce.web3.utils.fromWei(netProfit.toString(), 'ether'));
-        // console.log('****************************************************************************');
       
         // Determine if profitable
         const profitable = netProfit.toString() > '0';
-        // const profitable = true;
-        // console.log('netProfit.toString() => ', netProfit.toString());
+        
         // If profitable, then stop looking and trade!
         if(profitable) {
           // Skip if another profitable arb has already been found

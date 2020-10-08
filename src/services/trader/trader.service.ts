@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { FILL_ORDER_ABI } from 'src/config/ABIs/fill-order';
 import { ADDRESS, GAS_LIMIT, GAS_PRICE } from 'src/config/config';
-import { playSound, toBN, toHex, toTokens } from 'src/utils/utils';
+import { playSound, toBN, toHex, toTokens, toWei } from 'src/utils/utils';
 import { Web3Service } from '../web3/web3.service';
 
 @Injectable()
@@ -17,8 +17,7 @@ export class TraderService {
         fillAmount: number,
         oneSplitData: any
         ) {
-          // let ESTIMATE;
-        let receipt;
+
         try {
           const FLASH_AMOUNT = toTokens('100', flashTokenSymbol); // 100 WETH
           const FROM_TOKEN = flashTokenAddress // WETH
@@ -54,52 +53,19 @@ export class TraderService {
       
           // Calculate slippage
           const minReturnWtihSplippage = (toBN(minReturn)).mul(toBN('995')).div(toBN('1000')).toString();
-
-        
-          // console.log(
-          //     flashTokenAddress, // address flashToken,
-          //     ' // ',
-          //     FLASH_AMOUNT, // uint256 flashAmount,
-          //     ' // ',
-          //     arbTokenAddress, // address arbToken,
-          //     ' // ',
-          //     data, // bytes calldata zrxData,
-          //     ' // ',
-          //     minReturnWtihSplippage.toString(), // uint256 oneSplitMinReturn,
-          //     ' // ',
-          //     distribution, // uint256[] calldata oneSplitDistribution
-          // );
-          // let ESTIMATE;
-          // try {
-            // console.log('------------------------- BEFORE ESTIMATE -------------------------');
-            // console.log('------------------------------------------------------------');
-            // // Perform Trade
-            // ESTIMATE = await this.web3Service.traderContract.methods.getFlashloan(
-            //   flashTokenAddress, // address flashToken,
-            //   FLASH_AMOUNT, // uint256 flashAmount,
-            //   arbTokenAddress, // address arbToken,
-            //   data, // bytes calldata zrxData,
-            //   minReturnWtihSplippage, // uint256 oneSplitMinReturn,
-            //   distribution, // uint256[] calldata oneSplitDistribution
-            // ).estimateGas({from: ADDRESS});
-
-            // console.log('------------------------- ESTIMATE -------------------------');
-            // console.log(ESTIMATE);
-            // console.log('------------------------------------------------------------');
-            
             
           // Perform Trade
-          receipt = await this.web3Service.traderContract.methods.getFlashloan(
+          const receipt = await this.web3Service.traderContract.methods.getFlashloan(
             flashTokenAddress, // address flashToken,
             FLASH_AMOUNT, // uint256 flashAmount,
-            arbTokenAddress, // address arbToken,
+            arbTokenAddress, // address arbToken,p
             data, // bytes calldata zrxData,
             minReturnWtihSplippage.toString(), // uint256 oneSplitMinReturn,
             distribution, // uint256[] calldata oneSplitDistribution
           ).send({
             from: ADDRESS,
             gas: +GAS_LIMIT,
-            // gasPrice: GAS_PRICE
+            // gasPrice: toWei(GAS_PRICE, 'gwei')
           });
           playSound();
           playSound();
